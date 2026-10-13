@@ -1,0 +1,7 @@
+commodity,region,level,first_date,last_date,n_valid,coverage_pct,dash_or_zero_pct,mean,std,cv_pct,min,max
+Cabai Rawit Merah,Semua Provinsi,national,2017-01-02,2026-10-13,2467,96.7,3.3,56234.0,17114.0,30.4,17200.0,105300.0
+Cabai Rawit Merah,Jawa Tengah,province,2017-04-03,2026-10-13,2427,97.6,2.4,44536.0,20626.0,46.3,14400.0,113700.0
+Cabai Rawit Merah,DI Yogyakarta,province,2017-10-02,2026-10-13,2275,96.5,3.5,44581.0,21305.0,47.8,11000.0,120000.0
+Cabai Rawit Merah,Jawa Timur,province,2017-04-03,2026-10-13,2400,96.5,3.5,41103.0,21487.0,52.3,10250.0,110800.0
+Cabai Rawit Merah,Nusa Tenggara Barat,province,2017-07-03,2026-10-13,2336,96.4,3.6,44078.0,24514.0,55.6,11650.0,159400.0
+Cabai Rawit Merah,Bali,province,2017-04-03,2026-10-13,2335,93.9,6.1,42488.0,21958.0,51.7,12400.0,122500.0

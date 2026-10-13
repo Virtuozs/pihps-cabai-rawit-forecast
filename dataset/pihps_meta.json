@@ -1,0 +1,22 @@
+{
+  "source": "Bank Indonesia - PIHPS Nasional, https://www.bi.go.id/hargapangan",
+  "endpoint": "https://www.bi.go.id/hargapangan/WebSite/TabelHarga/GetGridDataKomoditas",
+  "price_type": "pasar tradisional (price_type_id=1)",
+  "report_type": "harian (tipe_laporan=1)",
+  "unit": "Rp/kg",
+  "accessed_at": "2026-10-13T17:35:31",
+  "commodities": {
+    "16": "Cabai Rawit Merah"
+  },
+  "level": "province",
+  "provinces": [
+    14,
+    15,
+    16,
+    17,
+    18
+  ],
+  "start": "2017-01-01",
+  "end": "2026-10-13",
+  "rows": 14792
+}

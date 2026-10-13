@@ -1,0 +1,46 @@
+{
+  "source": "Open-Meteo Historical Weather API (ERA5 reanalysis), https://archive-api.open-meteo.com/v1/archive",
+  "license": "CC BY 4.0 - attribute Open-Meteo",
+  "accessed_at": "2026-10-13T17:40:45",
+  "daily_variables": [
+    "precipitation_sum",
+    "rain_sum",
+    "precipitation_hours",
+    "temperature_2m_mean",
+    "temperature_2m_max",
+    "temperature_2m_min",
+    "relative_humidity_2m_mean"
+  ],
+  "timezone": "auto (local)",
+  "start": "2016-10-01",
+  "end": "2026-10-13",
+  "min_lag_days": 1,
+  "leakage_rule": "every feature on date t uses weather up to t-1 only",
+  "locations": {
+    "Jawa Tengah": {
+      "city": "Semarang",
+      "lat": -6.9667,
+      "lon": 110.4167
+    },
+    "DI Yogyakarta": {
+      "city": "Yogyakarta",
+      "lat": -7.7956,
+      "lon": 110.3695
+    },
+    "Jawa Timur": {
+      "city": "Surabaya",
+      "lat": -7.2575,
+      "lon": 112.7521
+    },
+    "Bali": {
+      "city": "Denpasar",
+      "lat": -8.6705,
+      "lon": 115.2126
+    },
+    "Nusa Tenggara Barat": {
+      "city": "Mataram",
+      "lat": -8.5833,
+      "lon": 116.1167
+    }
+  }
+}

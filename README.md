@@ -55,8 +55,8 @@ uv run scripts/fetch_pihps.py --level province --province 14 15 16 17 18
 ```
 
 - Fetches cabai rawit merah (commodity 16, the default) for **all** provinces
-  in one request per quarter — that's how the PIHPS API works at province
-  level, it can't be narrowed server-side — then keeps only the national row
+  in one request per quarter because that's how the PIHPS API works at province
+  level, it can't be narrowed server-side then keeps only the national row
   plus the 5 chosen provinces in the saved CSV.
 - Default date range is the full history: 2017-01-02 to today.
 - Outputs to `dataset/`: `pihps_prices.csv`, `pihps_quality.csv` (coverage/CV
@@ -74,18 +74,18 @@ uv run scripts/fetch_weather.py --province "Jawa Tengah" "DI Yogyakarta" "Jawa T
 ```
 
 - One request per province (the provincial capital's coordinates), covering
-  2016-10-01 to today by default — 6 months before the price history so
+  2016-10-01 to today by default 6 months before the price history so
   rolling 90-day windows are full from the start.
 - Builds lagged/rolling rainfall and temperature features
   (`weather_features.csv`), leak-safe: every feature at date *t* only uses
   weather up to *t-1* (`--min-lag` to make this stricter).
-- Requires `dataset/pihps_prices.csv` to already exist (step 1) — it merges
+- Requires `dataset/pihps_prices.csv` to already exist (step 1) because it will merges
   province-level prices with the weather features into
   `dataset/pihps_weather.csv`, the file to load for modeling.
-- Also writes `dataset/weather_daily_raw.csv` (EDA only — not lagged, don't
+- Also writes `dataset/weather_daily_raw.csv` (EDA only not lagged, don't
   join this one directly to prices) and `dataset/weather_meta.json`.
 - Open-Meteo is rate-limited; the script paces requests automatically
-  (~31 s apart) and sleeps out any 429s — a full 5-province pull takes a few
+  (~31 s apart) and sleeps out any 429s so a full 5-province pull can takes a few
   minutes.
 
 ## Output for modeling

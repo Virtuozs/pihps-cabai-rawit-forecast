@@ -28,7 +28,7 @@ nearly flat):
 
 Full history, 2017-01-02 to today. `dataset/pihps_quality.csv` has the
 coverage/volatility report for every province, including the ones dropped
-(Aceh, Sumatera Barat, Kepulauan Riau — too little or too short history).
+(Aceh, Sumatera Barat, Kepulauan Riau are too little or too short history).
 
 ## Project design
 
@@ -81,7 +81,7 @@ uv run scripts/fetch_weather.py --province "Jawa Tengah" "DI Yogyakarta" "Jawa T
   weather up to *t-1* (`--min-lag` to make this stricter).
 - Requires `dataset/pihps_prices.csv` to already exist (step 1) because it will merges
   province-level prices with the weather features into
-  `dataset/pihps_weather.csv`, the file to load for modeling.
+  `dataset/pihps_red_cayenne_pepper.csv`, the file to load for modeling.
 - Also writes `dataset/weather_daily_raw.csv` (EDA only not lagged, don't
   join this one directly to prices) and `dataset/weather_meta.json`.
 - Open-Meteo is rate-limited; the script paces requests automatically
@@ -90,7 +90,7 @@ uv run scripts/fetch_weather.py --province "Jawa Tengah" "DI Yogyakarta" "Jawa T
 
 ## Output for modeling
 
-After both steps, `dataset/pihps_weather.csv` has one row per
+After both steps, `dataset/pihps_red_cayenne_pepper.csv` has one row per
 (province, date) with `price` and all weather features, load this for the
 forecasting notebook. Check `dataset/pihps_quality.csv` after step 1, and the
 "missing weather features" warning printed after step 2, before trusting a

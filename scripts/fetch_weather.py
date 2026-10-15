@@ -8,7 +8,7 @@ Location: one point per province = the provincial capital, where the PIHPS marke
 Output : <out>/weather_daily_raw.csv   raw daily values, calendar days. EDA ONLY:
                                        do not join this to prices as model features.
          <out>/weather_features.csv    lagged / rolling features, safe to join on date
-         <out>/pihps_weather.csv       pihps_prices.csv (province level) + features
+         <out>/pihps_red_cayenne_pepper.csv  pihps_prices.csv (province level) + features
          <out>/weather_meta.json       source, coordinates, access date
          <out>/raw/weather/*.json      cached raw responses
 
@@ -202,10 +202,10 @@ def main() -> None:
         prov = prices[prices["level"] == "province"]
         merged = prov.merge(feats, left_on=["region", "date"], right_on=["province", "date"],
                             how="left", suffixes=("", "_w")).drop(columns="province_w")
-        merged.to_csv(args.out / "pihps_weather.csv", index=False)
+        merged.to_csv(args.out / "pihps_red_cayenne_pepper.csv", index=False)
         miss = merged.loc[merged["price"].notna(), "rain_sum_30d"].isna().groupby(
             merged["region"]).mean().loc[lambda s: s > 0.01]
-        print(f"\nSaved {len(merged):,} rows -> {args.out / 'pihps_weather.csv'}")
+        print(f"\nSaved {len(merged):,} rows -> {args.out / 'pihps_red_cayenne_pepper.csv'}")
         if len(miss):
             print("regions with >1% missing weather features:\n" + miss.round(3).to_string())
 

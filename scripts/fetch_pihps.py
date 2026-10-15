@@ -1,7 +1,3 @@
-# /// script
-# requires-python = ">=3.10"
-# dependencies = ["requests>=2.31", "pandas>=2.1"]
-# ///
 """Fetch daily traditional-market prices from PIHPS Nasional (Bank Indonesia).
 
 Source : https://www.bi.go.id/hargapangan  (public JSON behind the "Tabel Harga" page)
@@ -32,10 +28,12 @@ from __future__ import annotations
 
 import argparse
 import json
+import socket
 import sys
 import time
 from datetime import date, datetime
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pandas as pd
 import requests
@@ -56,6 +54,31 @@ session = requests.Session()
 session.headers.update(HEADERS)
 _last_call = 0.0
 
+_dns_pins: dict[str, str] = {}
+_orig_getaddrinfo = socket.getaddrinfo
+
+
+def _pinned_getaddrinfo(host, *args, **kwargs):
+    return _orig_getaddrinfo(_dns_pins.get(host, host), *args, **kwargs)
+
+
+socket.getaddrinfo = _pinned_getaddrinfo
+
+
+def _resolve_via_doh(host: str) -> str | None:
+    try:
+        r = requests.get("https://dns.google/resolve", params={"name": host, "type": "A"}, timeout=5)
+        for ans in r.json().get("Answer", []):
+            if ans.get("type") == 1:  # A record
+                return ans["data"]
+    except requests.RequestException:
+        return None
+    return None
+
+
+def _is_name_resolution_error(exc: Exception) -> bool:
+    return "NameResolutionError" in str(exc) or "nodename nor servname" in str(exc)
+
 
 class Blocked(RuntimeError):
     pass
@@ -64,6 +87,7 @@ class Blocked(RuntimeError):
 def get_json(url: str, params: dict | None = None, retries: int = 3) -> dict:
     """GET with rate limiting, retry on network errors, hard stop on blocking codes."""
     global _last_call
+    host = urlsplit(url).hostname
     for attempt in range(1, retries + 1):
         wait = DELAY_S - (time.monotonic() - _last_call)
         if wait > 0:
@@ -72,6 +96,13 @@ def get_json(url: str, params: dict | None = None, retries: int = 3) -> dict:
         try:
             r = session.get(url, params=params, timeout=180)
         except requests.RequestException as e:
+            if host and host not in _dns_pins and _is_name_resolution_error(e):
+                ip = _resolve_via_doh(host)
+                if ip:
+                    print(f"  system resolver failed for {host}; pinning to {ip} via DNS-over-HTTPS "
+                          f"for this run", file=sys.stderr)
+                    _dns_pins[host] = ip
+                    continue  # retry immediately with the pin in place, don't burn an attempt
             print(f"  network error ({e}); retry {attempt}/{retries}", file=sys.stderr)
             time.sleep(5 * attempt)
             continue
@@ -82,7 +113,7 @@ def get_json(url: str, params: dict | None = None, retries: int = 3) -> dict:
     raise RuntimeError(f"giving up on {url} {params}")
 
 
-# ---------------------------------------------------------------- metadata
+# metadata
 def commodities() -> dict[int, str]:
     tree = get_json(f"{BASE}/Home/GetCommoditiesTree")["data"]
     out = {}
@@ -97,7 +128,7 @@ def provinces() -> dict[int, str]:
     return {p["province_id"]: p["province_name"] for p in data if p["province_id"] != 0}
 
 
-# ---------------------------------------------------------------- fetching
+# fetching
 def fetch_chunk(com_id: int, province_id: int | None, show_kota: bool,
                 start: date, end: date, raw_dir: Path, refresh: bool) -> list[dict]:
     """One request (cached). province_id=None -> every province in one call."""
@@ -158,7 +189,7 @@ def quarter_chunks(start: date, end: date):
                 yield max(start, qs), min(end, qe)
 
 
-# ---------------------------------------------------------------- quality
+# quality
 def quality_report(df: pd.DataFrame) -> pd.DataFrame:
     """Coverage vs. Mon-Fri business days, zero/'-' share, coefficient of variation."""
     rows = []
@@ -179,7 +210,7 @@ def quality_report(df: pd.DataFrame) -> pd.DataFrame:
                                           ascending=[True, True, False])
 
 
-# ---------------------------------------------------------------- main
+# main
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--commodity", type=int, nargs="+", default=[16],

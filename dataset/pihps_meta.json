@@ -4,12 +4,13 @@
   "price_type": "pasar tradisional (price_type_id=1)",
   "report_type": "harian (tipe_laporan=1)",
   "unit": "Rp/kg",
-  "accessed_at": "2026-10-13T17:35:31",
+  "accessed_at": "2026-10-15T16:45:56",
   "commodities": {
     "16": "Cabai Rawit Merah"
   },
   "level": "province",
   "provinces": [
+    13,
     14,
     15,
     16,
@@ -17,6 +18,6 @@
     18
   ],
   "start": "2017-01-01",
-  "end": "2026-10-13",
-  "rows": 14792
+  "end": "2026-10-15",
+  "rows": 17228
 }

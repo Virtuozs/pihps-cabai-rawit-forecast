@@ -1,7 +1,7 @@
 # pihps-cabai-rawit-forecast
 
 Predicts the daily traditional-market price of **cabai rawit merah** (red cayenne pepper), 
-Rp/kg, 7 working days ahead, for 5 Indonesian provinces,
+Rp/kg, 7 working days ahead, for 6 Indonesian provinces,
 using price history from [PIHPS](https://www.bi.go.id/hargapangan) Nasional (Bank Indonesia) joined with rainfall
 and temperature features from [Open-Meteo](https://open-meteo.com/).
 
@@ -14,9 +14,9 @@ brief.
 
 ## Provinces
 
-5 provinces, chosen from all 34 for data coverage (≥ 93% of working days
+6 provinces were chosen from all 34 for data coverage (≥ 93% of working days
 filled) and price volatility (coefficient of variation, so the series isn't
-nearly flat):
+nearly flat).
 
 | Province | PIHPS ID | Coverage | CV% |
 |---|---|---|---|
@@ -25,6 +25,7 @@ nearly flat):
 | Jawa Timur | 16 | 96.5% | 52.3% |
 | Bali | 17 | 93.9% | 51.7% |
 | Nusa Tenggara Barat | 18 | 96.4% | 55.6% |
+| DKI Jakarta | 13 | 95.9% | 40.7% |
 
 Full history, 2017-01-02 to today. `dataset/pihps_quality.csv` has the
 coverage/volatility report for every province, including the ones dropped
@@ -51,13 +52,13 @@ uv sync
 ## 1. Fetch prices (PIHPS)
 
 ```bash
-uv run scripts/fetch_pihps.py --level province --province 14 15 16 17 18
+uv run scripts/fetch_pihps.py --level province --province 13 14 15 16 17 18
 ```
 
 - Fetches cabai rawit merah (commodity 16, the default) for **all** provinces
   in one request per quarter because that's how the PIHPS API works at province
   level, it can't be narrowed server-side then keeps only the national row
-  plus the 5 chosen provinces in the saved CSV.
+  plus the 6 chosen provinces in the saved CSV.
 - Default date range is the full history: 2017-01-02 to today.
 - Outputs to `dataset/`: `pihps_prices.csv`, `pihps_quality.csv` (coverage/CV
   report), `pihps_meta.json`, and raw JSON responses cached under
@@ -70,7 +71,7 @@ uv run scripts/fetch_pihps.py --level province --province 14 15 16 17 18
 ## 2. Fetch weather (Open-Meteo) and join to prices
 
 ```bash
-uv run scripts/fetch_weather.py --province "Jawa Tengah" "DI Yogyakarta" "Jawa Timur" "Bali" "Nusa Tenggara Barat"
+uv run scripts/fetch_weather.py --province "Jawa Tengah" "DI Yogyakarta" "Jawa Timur" "Bali" "Nusa Tenggara Barat" "DKI Jakarta"
 ```
 
 - One request per province (the provincial capital's coordinates), covering

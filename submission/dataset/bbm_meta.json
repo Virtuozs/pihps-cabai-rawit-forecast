@@ -1,0 +1,46 @@
+{
+  "description": "Hand-compiled BBM (subsidized fuel) price step-changes, NOT scraped -- see README.md ('BBM / Solar price') for why and for full source citations.",
+  "generated_at": "2026-10-18T01:29:51+00:00",
+  "fuels": {
+    "premium": "RON 88, discontinued nationwide 2023-01-01",
+    "pertalite": "RON 90, current subsidized gasoline",
+    "solar": "subsidized diesel (Biosolar CN48)"
+  },
+  "unit": "Rp/liter",
+  "scope_definitions": {
+    "all": "applies to every province",
+    "jmb": "Jawa-Madura-Bali: Jawa Tengah, DI Yogyakarta, Jawa Timur, Bali, DKI Jakarta",
+    "ntb_other": "outside Jawa-Madura-Bali: Nusa Tenggara Barat"
+  },
+  "join_mechanism": "merge_asof (backward) per province -- most recent event with effective_date <= date. Leak-safe: same-day public announcements.",
+  "selected_fuels": [
+    "solar"
+  ],
+  "date_range_generated": {
+    "start": "2017-01-02",
+    "end": "2026-10-18"
+  },
+  "n_events_by_fuel": {
+    "pertalite": 5,
+    "premium": 8,
+    "solar": 6
+  },
+  "n_events_by_confidence": {
+    "approx": 1,
+    "confirmed": 13,
+    "confirmed_unavailable": 2,
+    "low_confidence": 1,
+    "unconfirmed_gap": 2
+  },
+  "events_file": "bbm_price_events.csv",
+  "joined_into": "dataset/pihps_red_cayenne_pepper.csv",
+  "sources": [
+    "Xie, Y. & Harjono, M., 'The retail fuels market in Indonesia', ICCT Working Paper 2020-23 (Oct 2020) -- Table 4 and Table 5",
+    "Kementerian ESDM official press release, 19 Jan 2015 Premium/Solar price (esdm.go.id)",
+    "Ditjen Migas ESDM official announcement, 5 Jan 2016 BBM price cut (migas.esdm.go.id)",
+    "Menteri ESDM Sudirman Said, 1 Apr 2016 Premium/Solar price cut (Republika)",
+    "indonesiabaik.id (Kominfo) infographic, 3 Sept 2022 fuel price adjustment",
+    "News search confirming Solar/Pertalite flat through 2023 (Bisnis.com), 2024-2025 (CNBC Indonesia, Sri Mulyani statement), and Apr-Oct 2026 (Bisnis.com, RRI, CNBC Indonesia, BCA Sekuritas, Antara, RCTI+/iNews)",
+    "Kepmen ESDM No. 245.K/MG.01/MEM.M/2022 (Premium discontinuation), via secondary reporting"
+  ]
+}

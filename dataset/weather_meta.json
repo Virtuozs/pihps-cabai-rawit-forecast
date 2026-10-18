@@ -1,7 +1,7 @@
 {
   "source": "Open-Meteo Historical Weather API (ERA5 reanalysis), https://archive-api.open-meteo.com/v1/archive",
   "license": "CC BY 4.0 - attribute Open-Meteo",
-  "accessed_at": "2026-10-15T16:46:01",
+  "accessed_at": "2026-10-18T08:29:44",
   "daily_variables": [
     "precipitation_sum",
     "rain_sum",
@@ -9,11 +9,13 @@
     "temperature_2m_mean",
     "temperature_2m_max",
     "temperature_2m_min",
-    "relative_humidity_2m_mean"
+    "relative_humidity_2m_mean",
+    "shortwave_radiation_sum",
+    "et0_fao_evapotranspiration"
   ],
   "timezone": "auto (local)",
   "start": "2016-10-01",
-  "end": "2026-10-15",
+  "end": "2026-10-18",
   "min_lag_days": 1,
   "leakage_rule": "every feature on date t uses weather up to t-1 only",
   "locations": {

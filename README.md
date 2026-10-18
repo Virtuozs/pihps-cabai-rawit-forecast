@@ -31,14 +31,17 @@ Full history, 2017-01-02 to today. `dataset/pihps_quality.csv` has the
 coverage/volatility report for every province, including the ones dropped
 (Aceh, Sumatera Barat, Kepulauan Riau are too little or too short history).
 
-## Project design
+## Project design and result
 
 - **Target:** price 7 working days ahead, per province.
-- **Baseline:** To be established. A seasonal-naive forecast will be evaluated as the initial benchmark.
-- **Candidates:** We will evaluate some model and approach (SARIMAX, Holt-Winters/ETS, and tree-based models (LightGBM or Random Forest) using lagged, rolling, and rainfall features). 
-Model selection and tuning will use time-series-aware validation, such as `TimeSeriesSplit` or expanding-window evaluation.
-- **Interpretation:** feature importance or SHAP, framed as predictive, not
-  causal.
+- **Baselines:** persistence (price unchanged, CV MAPE 16.6%) and seasonal-naive (same day last year, CV MAPE 49.1%, far weaker).
+- **Candidates evaluated:** ETS, ARIMA(1,1,1), Ridge, Random Forest, and LightGBM, all on identical folds, rows, and metric.
+- **Validation:** 5 expanding-window development folds (6 months each, 7-day purge gap), plus a locked test year (Oct 2025 to Oct 2026) scored exactly once. Test year and feature-informing EDA are strictly separated.
+- **Tuning:** the two models with the lowest default-settings CV MAPE (Ridge and LightGBM) are hyperparameter-tuned.
+- **Final model:** tuned Ridge, selected by the pre-declared "lowest CV MAPE" rule. CV 13.89%, test 14.11% vs. 15.20% naive (7.2% skill). Tuned LightGBM scores better on test (13.00%) but is not substituted in, since choosing by test performance would invalidate the evaluation; this is documented as an open decision, not silently resolved.
+- **Interpretation:** model-specific (Ridge coefficients, or impurity importance / TreeSHAP if a tree model is selected) plus grouped permutation importance, framed as predictive, not causal, throughout.
+
+Full methodology, EDA, feature engineering, ablation, tuning, and limitations are in the notebook: `analysis/cabai_rawit_forecast.ipynb`.
 
 ## Setup
 
@@ -108,7 +111,7 @@ uv run scripts/fetch_bbm.py --join dataset/pihps_red_cayenne_pepper.csv
   (backward-fill) join that leak-safe by construction, since these are
   same-day public announcements, so no `--min-lag` is needed.
 - Only **Solar** (subsidized diesel, Biosolar CN48) is selected for the main
-  dataset: 100% coverage vs. 44–71% for Premium/Pertalite, and it carries
+  dataset: 100% coverage vs. 44-71% for Premium/Pertalite, and it carries
   the direct causal story (diesel trucks move chili through the supply
   chain). Over the full history Solar has exactly two price levels: Rp
   5,150/L until 2022-09-03, then Rp 6,800/L after encoding that (raw
@@ -130,19 +133,48 @@ uv run scripts/fetch_bbm.py --join dataset/pihps_red_cayenne_pepper.csv
   (Premium discontinuation). Full citations and known gaps are documented
   per-row in `dataset/bbm_price_events.csv`.
 
-## Output for modeling
+## Output for modeling: which file to actually use
 
-After all three steps, `dataset/pihps_red_cayenne_pepper.csv` has one row
-per (province, date) with `price`, all weather features, and
-`solar_rp_per_l`, load this for the forecasting notebook. Check
-`dataset/pihps_quality.csv` after step 1, the "missing weather features"
-warning printed after step 2, and `dataset/bbm_quality.csv` after step 3,
-before trusting a given province's series.
+`dataset/` ends up with several CSVs because each script also writes its
+intermediate inputs and QA reports, not just the final file. **Only one
+file is loaded by the notebook for modeling:**
 
-## Layout (Temporary)
+> ### `dataset/pihps_red_cayenne_pepper.csv`: the file to load
+> One row per (province, working day), 33 columns: 7 identifiers/target
+> (`date`, `region`, `price`, ...) + 21 leak-safe weather features +
+> `solar_rp_per_l`. 14,680 rows, 2017-04-03 to today. This is the single
+> output of the pipeline below; nothing else needs to be joined manually.
+
+Everything else in `dataset/` is either a **raw/intermediate input** that
+feeds into that one file, or a **QA/reference report** meant for a human to
+check, not to load into the model:
+
+| File | Role |
+|---|---|
+| `pihps_red_cayenne_pepper.csv` | **Load this one.** Final modelling panel (price + weather + Solar) |
+| `pihps_prices.csv` | Intermediate: raw province + national prices from step 1, before the weather join |
+| `weather_daily_raw.csv` | Intermediate: unlagged daily weather, EDA use only. Do not join directly to prices |
+| `weather_features.csv` | Intermediate: lagged/rolling weather features before the price join |
+| `bbm_price_events.csv` | Source of truth: hand-compiled Solar price events (not regenerable, not gitignored) |
+| `bbm_features.csv` / `bbm_features_all.csv` | Intermediate: Solar (and Premium/Pertalite, reference only) joined to a date/province grid, before the final join |
+| `pihps_quality.csv` / `bbm_quality.csv` | QA reports: coverage/CV and Solar coverage, for a human to check before trusting a province's series |
+| `pihps_meta.json` / `weather_meta.json` / `bbm_meta.json` | QA metadata: access dates, sources, parameters used for that run |
+| `raw/` | Gitignored API response cache (PIHPS + Open-Meteo), not meant to be read directly |
+
+## Layout
 
 ```
 scripts/      fetch_pihps.py, fetch_weather.py, fetch_bbm.py
-dataset/      fetched CSVs + raw/ cache (gitignored except small metadata)
+dataset/      fetched CSVs + raw/ cache (gitignored except small metadata) -- see table above for which file to use
+analysis/     cabai_rawit_forecast.ipynb -- the forecasting notebook (full methodology, EDA, modelling, results)
+presentation/ cabai_rawit_pitch.pptx (stakeholder pitch), cabai_rawit_technical.pptx (technical/methodology walkthrough)
 artifact/     assignment brief (PDF)
 ```
+
+## Submission package
+
+- `analysis/cabai_rawit_forecast.ipynb`: the notebook
+- `dataset/`: the exact data files used (see table above)
+- `presentation/cabai_rawit_pitch.pptx`: stakeholder-facing business pitch
+- `presentation/cabai_rawit_technical.pptx`: technical walkthrough (methodology, validation, results, for the technical interview)
+- `CONTRIBUTION_STATEMENT.md` and `.pdf`: group contribution statement

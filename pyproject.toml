@@ -6,4 +6,16 @@ requires-python = ">=3.12"
 dependencies = [
     "pandas>=3.0.6",
     "requests>=2.34.2",
+    "numpy>=2.0",
+    "matplotlib>=3.9",
+    "seaborn>=0.13",
+    "scikit-learn>=1.5",
+    "statsmodels>=0.14",
+    "lightgbm>=4.3",
+    "scipy>=1.13",
+    "jupyter>=1.0",
+    "ipykernel>=6.29",
+    "nbformat>=5.10",
+    "nbclient>=0.10",
+    "hijri-converter>=2.3.2.post1",
 ]

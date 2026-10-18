@@ -38,7 +38,8 @@ import requests
 ARCHIVE = "https://archive-api.open-meteo.com/v1/archive"
 DAILY_VARS = ["precipitation_sum", "rain_sum", "precipitation_hours",
               "temperature_2m_mean", "temperature_2m_max", "temperature_2m_min",
-              "relative_humidity_2m_mean"]
+              "relative_humidity_2m_mean",
+              "shortwave_radiation_sum", "et0_fao_evapotranspiration"]
 DELAY_S = 31.0  # ~2 ten-year requests per minute fits the 600 weighted calls/min limit
 START = date(2016, 10, 1)  # 6 months before PIHPS data so the 90-day windows are full
 
@@ -152,6 +153,8 @@ def build_features(raw: pd.DataFrame, min_lag: int) -> pd.DataFrame:
             f[f"temp_mean_{w}d"] = tmean.rolling(w, min_periods=w).mean()
             f[f"temp_max_{w}d"] = g["temperature_2m_max"].rolling(w, min_periods=w).max()
             f[f"rh_mean_{w}d"] = g["relative_humidity_2m_mean"].rolling(w, min_periods=w).mean()
+            f[f"srad_mean_{w}d"] = g["shortwave_radiation_sum"].rolling(w, min_periods=w).mean()
+            f[f"et0_mean_{w}d"] = g["et0_fao_evapotranspiration"].rolling(w, min_periods=w).mean()
         # anomaly: last 30 days of rain vs. the 365-day average 30-day rain
         f["rain_30d_anom"] = f["rain_sum_30d"] - rain.rolling(365, min_periods=180).sum() * 30 / 365
         roll_cols = [c for c in f.columns if not c.startswith("rain_lag")]

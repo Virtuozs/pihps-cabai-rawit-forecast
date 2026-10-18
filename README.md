@@ -77,9 +77,10 @@ uv run scripts/fetch_weather.py --province "Jawa Tengah" "DI Yogyakarta" "Jawa T
 - One request per province (the provincial capital's coordinates), covering
   2016-10-01 to today by default 6 months before the price history so
   rolling 90-day windows are full from the start.
-- Builds lagged/rolling rainfall and temperature features
-  (`weather_features.csv`), leak-safe: every feature at date *t* only uses
-  weather up to *t-1* (`--min-lag` to make this stricter).
+- Builds lagged/rolling rainfall, temperature, humidity, shortwave radiation
+  and ET0 (evapotranspiration) features (`weather_features.csv`), leak-safe:
+  every feature at date *t* only uses weather up to *t-1* (`--min-lag` to
+  make this stricter).
 - Requires `dataset/pihps_prices.csv` to already exist (step 1) because it will merges
   province-level prices with the weather features into
   `dataset/pihps_red_cayenne_pepper.csv`, the file to load for modeling.
@@ -89,18 +90,59 @@ uv run scripts/fetch_weather.py --province "Jawa Tengah" "DI Yogyakarta" "Jawa T
   (~31 s apart) and sleeps out any 429s so a full 5-province pull can takes a few
   minutes.
 
+## 3. Add BBM (Solar/diesel) price
+
+```bash
+uv run scripts/fetch_bbm.py --join dataset/pihps_red_cayenne_pepper.csv
+```
+
+- Not an API fetch: subsidized-fuel prices in Indonesia are discrete,
+  government-announced step-changes, not a scrapeable live feed (see sources
+  below), so the source of truth is a **hand-compiled, cited** table,
+  `dataset/bbm_price_events.csv` (one row per confirmed price change or
+  confirmed/suspected gap, with `source` and `confidence` columns). Nothing
+  in it is guessed all unverified periods are left `NaN`, never forward-filled.
+  Unlike `dataset/raw/`, this file is **not** gitignored cache: it's
+  irreplaceable research, not something a rerun regenerates.
+- Turns that events table into a daily, per-province feature via an as-of
+  (backward-fill) join that leak-safe by construction, since these are
+  same-day public announcements, so no `--min-lag` is needed.
+- Only **Solar** (subsidized diesel, Biosolar CN48) is selected for the main
+  dataset: 100% coverage vs. 44–71% for Premium/Pertalite, and it carries
+  the direct causal story (diesel trucks move chili through the supply
+  chain). Over the full history Solar has exactly two price levels: Rp
+  5,150/L until 2022-09-03, then Rp 6,800/L after encoding that (raw
+  Rp/liter vs. a regime flag) is deferred to the EDA/feature-engineering
+  step.
+- Outputs to `dataset/`: `bbm_features.csv` (selected: `solar_rp_per_l`),
+  `bbm_features_all.csv` (Premium + Pertalite + Solar, for reference/
+  documentation only), `bbm_meta.json`, `bbm_quality.csv` (per-province,
+  per-fuel coverage against actual chili-price rows). With `--join`, it also
+  left-joins `solar_rp_per_l` into `dataset/pihps_red_cayenne_pepper.csv` in
+  place (matched on province + date).
+- Sources: Xie & Harjono, *The retail fuels market in Indonesia*, ICCT
+  Working Paper 2020-23; official Kementerian/Ditjen Migas ESDM
+  announcements for the 2015-01-19, 2016-01-05 and 2016-04-01 Solar price
+  steps (esdm.go.id / migas.esdm.go.id); indonesiabaik.id (Kominfo)
+  infographic on the 3 Sep 2022 price adjustment; news confirming
+  Solar/Pertalite unchanged through 2023-2026 (Bisnis.com, CNBC Indonesia,
+  RRI, BCA Sekuritas, Antara, RCTI+); Kepmen ESDM No. 245.K/MG.01/MEM.M/2022
+  (Premium discontinuation). Full citations and known gaps are documented
+  per-row in `dataset/bbm_price_events.csv`.
+
 ## Output for modeling
 
-After both steps, `dataset/pihps_red_cayenne_pepper.csv` has one row per
-(province, date) with `price` and all weather features, load this for the
-forecasting notebook. Check `dataset/pihps_quality.csv` after step 1, and the
-"missing weather features" warning printed after step 2, before trusting a
-given province's series.
+After all three steps, `dataset/pihps_red_cayenne_pepper.csv` has one row
+per (province, date) with `price`, all weather features, and
+`solar_rp_per_l`, load this for the forecasting notebook. Check
+`dataset/pihps_quality.csv` after step 1, the "missing weather features"
+warning printed after step 2, and `dataset/bbm_quality.csv` after step 3,
+before trusting a given province's series.
 
 ## Layout (Temporary)
 
 ```
-scripts/      fetch_pihps.py, fetch_weather.py
+scripts/      fetch_pihps.py, fetch_weather.py, fetch_bbm.py
 dataset/      fetched CSVs + raw/ cache (gitignored except small metadata)
 artifact/     assignment brief (PDF)
 ```
